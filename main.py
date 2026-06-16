@@ -1,14 +1,37 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+from pathlib import Path
 
-DB_PATH = "inventory.db"
+BASE_DIR = Path(__file__).parent
+DB_PATH = BASE_DIR / "inventory.db"
+DDL_PATH = BASE_DIR / "DDL.sql"
+INSERT_PATH = BASE_DIR / "insert_data.sql"
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cur.fetchall()
+
+    if len(tables) == 0:
+        with open(DDL_PATH, "r", encoding="utf-8") as f:
+            conn.executescript(f.read())
+
+        with open(INSERT_PATH, "r", encoding="utf-8") as f:
+            conn.executescript(f.read())
+
+    conn.commit()
+    conn.close()
 
 def run_query(query):
     conn = sqlite3.connect(DB_PATH)
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
+
+init_db()
 
 st.title("재고관리 정보시스템")
 
@@ -33,7 +56,7 @@ if menu == "상품별 재고 현황":
     """
 
     df = run_query(query)
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
 
 elif menu == "발주 필요 품목":
     st.subheader("발주 필요 품목")
@@ -52,7 +75,7 @@ elif menu == "발주 필요 품목":
     """
 
     df = run_query(query)
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
 
 elif menu == "입출고 이력":
     st.subheader("입출고 이력")
@@ -73,4 +96,4 @@ elif menu == "입출고 이력":
     """
 
     df = run_query(query)
-    st.dataframe(df)
+    st.dataframe(df, use_container_width=True)
