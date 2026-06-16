@@ -13,9 +13,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# =========================
-# DB 공통 함수
-# =========================
 def get_conn():
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA foreign_keys = ON;")
@@ -34,9 +31,6 @@ def execute_sql(query, params=None):
     conn.commit()
     conn.close()
 
-# =========================
-# 스타일
-# =========================
 st.markdown("""
 <style>
 .main-title {
@@ -58,9 +52,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =========================
-# 사이드바
-# =========================
 st.sidebar.title("📦 재고관리")
 
 menu = st.sidebar.radio(
@@ -73,24 +64,20 @@ menu = st.sidebar.radio(
         "출고 처리",
         "거래 이력",
         "공급자 관리",
-        "활용 사례 1. 상품별 현재 재고 현황",
-        "활용 사례 2. 공급자별 공급 상품 조회",
-        "활용 사례 3. 입출고 이력 조회",
-        "SQL Console"
+        "상품별 현재 재고 현황",
+        "공급자별 공급 상품 조회",
+        "입출고 이력 조회"
     ]
 )
 
 st.markdown('<div class="main-title">재고관리 정보시스템</div>', unsafe_allow_html=True)
 st.markdown(
-    '<div class="sub-text">SQLite 데이터베이스와 Streamlit을 연동한 재고관리 정보시스템</div>',
+    '<div class="sub-text">상품, 창고, 공급자, 입출고 및 재고거래 이력을 통합 관리하는 시스템</div>',
     unsafe_allow_html=True
 )
 
-# =========================
-# 대시보드
-# =========================
 if menu == "대시보드":
-    st.subheader("📊 대시보드")
+    st.subheader("대시보드")
 
     product_count = run_query("SELECT COUNT(*) AS cnt FROM Product;")["cnt"][0]
     supplier_count = run_query("SELECT COUNT(*) AS cnt FROM Supplier;")["cnt"][0]
@@ -133,11 +120,8 @@ if menu == "대시보드":
         df = run_query(query)
         st.dataframe(df, use_container_width=True, hide_index=True)
 
-# =========================
-# 상품 관리
-# =========================
 elif menu == "상품 관리":
-    st.subheader("📦 상품 관리")
+    st.subheader("상품 관리")
 
     tab1, tab2, tab3 = st.tabs(["상품 목록", "상품 등록", "상품 수정/삭제"])
 
@@ -242,11 +226,8 @@ elif menu == "상품 관리":
                         st.warning("상품이 삭제 상태로 변경되었습니다.")
                         st.rerun()
 
-# =========================
-# 재고 현황 및 재고 수정
-# =========================
 elif menu == "재고 현황":
-    st.subheader("📋 재고 현황")
+    st.subheader("재고 현황")
 
     query = """
     SELECT 
@@ -283,7 +264,7 @@ elif menu == "재고 현황":
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     st.divider()
-    st.markdown("### 재고 수량 직접 수정")
+    st.markdown("### 재고 수량 수정")
 
     inventory_list = run_query("""
     SELECT 
@@ -329,11 +310,8 @@ elif menu == "재고 현황":
                 st.success("재고 정보가 수정되었습니다.")
                 st.rerun()
 
-# =========================
-# 입고 처리
-# =========================
 elif menu == "입고 처리":
-    st.subheader("⬆ 입고 처리")
+    st.subheader("입고 처리")
 
     products = run_query("SELECT product_id, product_name FROM Product WHERE status = '정상' ORDER BY product_id;")
     suppliers = run_query("SELECT supplier_id, supplier_name FROM Supplier ORDER BY supplier_id;")
@@ -406,11 +384,8 @@ elif menu == "입고 처리":
             st.success("입고 처리가 완료되었습니다.")
             st.rerun()
 
-# =========================
-# 출고 처리
-# =========================
 elif menu == "출고 처리":
-    st.subheader("⬇ 출고 처리")
+    st.subheader("출고 처리")
 
     inventory = run_query("""
     SELECT 
@@ -488,11 +463,8 @@ elif menu == "출고 처리":
                 st.success("출고 처리가 완료되었습니다.")
                 st.rerun()
 
-# =========================
-# 거래 이력
-# =========================
 elif menu == "거래 이력":
-    st.subheader("🔄 거래 이력")
+    st.subheader("거래 이력")
 
     query = """
     SELECT 
@@ -521,11 +493,8 @@ elif menu == "거래 이력":
 
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-# =========================
-# 공급자 관리
-# =========================
 elif menu == "공급자 관리":
-    st.subheader("🏭 공급자 관리")
+    st.subheader("공급자 관리")
 
     tab1, tab2 = st.tabs(["공급자별 공급 상품", "공급자 등록"])
 
@@ -574,192 +543,88 @@ elif menu == "공급자 관리":
                     st.success("공급자가 등록되었습니다.")
                     st.rerun()
 
-# =========================
-# 활용 사례 1
-# =========================
-elif menu == "활용 사례 1. 상품별 현재 재고 현황":
-    st.subheader("활용 사례 1. 상품별 현재 재고 현황")
+elif menu == "상품별 현재 재고 현황":
+    st.subheader("상품별 현재 재고 현황")
 
     st.markdown(
         """
         <div class="info-box">
-        Product, Inventory, Warehouse 테이블을 JOIN하여 상품별 현재 재고 수량과 창고 위치를 조회한다.
+        상품, 재고, 창고 정보를 연계하여 상품별 현재 재고 수량과 보관 위치를 확인할 수 있다.
         </div>
         """,
         unsafe_allow_html=True
     )
 
     query = """
-SELECT
-    P.product_name AS 상품명,
-    W.warehouse_name AS 창고명,
-    I.current_qty AS 현재재고
-FROM Product P
-JOIN Inventory I
-    ON P.product_id = I.product_id
-JOIN Warehouse W
-    ON I.warehouse_id = W.warehouse_id;
-"""
+    SELECT
+        P.product_name AS 상품명,
+        W.warehouse_name AS 창고명,
+        I.current_qty AS 현재재고
+    FROM Product P
+    JOIN Inventory I
+        ON P.product_id = I.product_id
+    JOIN Warehouse W
+        ON I.warehouse_id = W.warehouse_id;
+    """
 
-    st.markdown("#### 실행 SQL")
-    st.code(query, language="sql")
-
-    st.markdown("#### 조회 결과")
     df = run_query(query)
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-# =========================
-# 활용 사례 2
-# =========================
-elif menu == "활용 사례 2. 공급자별 공급 상품 조회":
-    st.subheader("활용 사례 2. 공급자별 공급 상품 조회")
+elif menu == "공급자별 공급 상품 조회":
+    st.subheader("공급자별 공급 상품 조회")
 
     st.markdown(
         """
         <div class="info-box">
-        Supplier, SupplierProduct, Product 테이블을 JOIN하여 공급자별 공급 상품과 공급 단가를 조회한다.
+        공급자와 상품 정보를 연계하여 공급자별 공급 상품, 공급 단가, 납기 정보를 확인할 수 있다.
         </div>
         """,
         unsafe_allow_html=True
     )
 
     query = """
-SELECT
-    S.supplier_name AS 공급자명,
-    P.product_name AS 상품명,
-    SP.supply_price AS 공급단가,
-    SP.lead_day AS 납기일
-FROM Supplier S
-JOIN SupplierProduct SP
-    ON S.supplier_id = SP.supplier_id
-JOIN Product P
-    ON SP.product_id = P.product_id;
-"""
+    SELECT
+        S.supplier_name AS 공급자명,
+        P.product_name AS 상품명,
+        SP.supply_price AS 공급단가,
+        SP.lead_day AS 납기일
+    FROM Supplier S
+    JOIN SupplierProduct SP
+        ON S.supplier_id = SP.supplier_id
+    JOIN Product P
+        ON SP.product_id = P.product_id;
+    """
 
-    st.markdown("#### 실행 SQL")
-    st.code(query, language="sql")
-
-    st.markdown("#### 조회 결과")
     df = run_query(query)
     st.dataframe(df, use_container_width=True, hide_index=True)
 
-# =========================
-# 활용 사례 3
-# =========================
-elif menu == "활용 사례 3. 입출고 이력 조회":
-    st.subheader("활용 사례 3. 입출고 이력 조회")
+elif menu == "입출고 이력 조회":
+    st.subheader("입출고 이력 조회")
 
     st.markdown(
         """
         <div class="info-box">
-        StockTransaction, Product, Warehouse 테이블을 JOIN하여 상품별 입출고 이력과 거래 담당자를 조회한다.
+        상품별 입출고 이력과 거래 담당자를 조회하여 재고 변동 내역을 확인할 수 있다.
         </div>
         """,
         unsafe_allow_html=True
     )
 
     query = """
-SELECT
-    P.product_name AS 상품명,
-    W.warehouse_name AS 창고명,
-    ST.transaction_type AS 거래유형,
-    ST.quantity AS 수량,
-    ST.transaction_date AS 거래일자,
-    ST.manager AS 담당자
-FROM StockTransaction ST
-JOIN Product P
-    ON ST.product_id = P.product_id
-JOIN Warehouse W
-    ON ST.warehouse_id = W.warehouse_id
-ORDER BY ST.transaction_date DESC;
-"""
+    SELECT
+        P.product_name AS 상품명,
+        W.warehouse_name AS 창고명,
+        ST.transaction_type AS 거래유형,
+        ST.quantity AS 수량,
+        ST.transaction_date AS 거래일자,
+        ST.manager AS 담당자
+    FROM StockTransaction ST
+    JOIN Product P
+        ON ST.product_id = P.product_id
+    JOIN Warehouse W
+        ON ST.warehouse_id = W.warehouse_id
+    ORDER BY ST.transaction_date DESC;
+    """
 
-    st.markdown("#### 실행 SQL")
-    st.code(query, language="sql")
-
-    st.markdown("#### 조회 결과")
     df = run_query(query)
     st.dataframe(df, use_container_width=True, hide_index=True)
-
-# =========================
-# SQL Console
-# =========================
-elif menu == "SQL Console":
-    st.subheader("💻 SQL Console")
-
-    st.markdown(
-        """
-        <div class="info-box">
-        사용자가 직접 SELECT 조회문을 입력하여 SQLite 데이터베이스의 데이터를 조회할 수 있다.
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    sample_queries = {
-        "상품별 현재 재고 현황": """
-SELECT
-    P.product_name AS 상품명,
-    W.warehouse_name AS 창고명,
-    I.current_qty AS 현재재고
-FROM Product P
-JOIN Inventory I
-    ON P.product_id = I.product_id
-JOIN Warehouse W
-    ON I.warehouse_id = W.warehouse_id;
-""",
-        "공급자별 공급 상품 조회": """
-SELECT
-    S.supplier_name AS 공급자명,
-    P.product_name AS 상품명,
-    SP.supply_price AS 공급단가,
-    SP.lead_day AS 납기일
-FROM Supplier S
-JOIN SupplierProduct SP
-    ON S.supplier_id = SP.supplier_id
-JOIN Product P
-    ON SP.product_id = P.product_id;
-""",
-        "입출고 이력 조회": """
-SELECT
-    P.product_name AS 상품명,
-    W.warehouse_name AS 창고명,
-    ST.transaction_type AS 거래유형,
-    ST.quantity AS 수량,
-    ST.transaction_date AS 거래일자,
-    ST.manager AS 담당자
-FROM StockTransaction ST
-JOIN Product P
-    ON ST.product_id = P.product_id
-JOIN Warehouse W
-    ON ST.warehouse_id = W.warehouse_id
-ORDER BY ST.transaction_date DESC;
-""",
-        "전체 상품 조회": """
-SELECT * FROM Product;
-""",
-        "전체 재고 조회": """
-SELECT * FROM Inventory;
-"""
-    }
-
-    selected_sample = st.selectbox("예제 SQL 선택", list(sample_queries.keys()))
-
-    user_query = st.text_area(
-        "SQL 입력",
-        value=sample_queries[selected_sample],
-        height=260
-    )
-
-    run_btn = st.button("조회 실행")
-
-    if run_btn:
-        try:
-            if not user_query.strip().lower().startswith("select"):
-                st.error("현재 화면에서는 SELECT 조회문만 실행할 수 있습니다.")
-            else:
-                df = run_query(user_query)
-                st.success("조회가 완료되었습니다.")
-                st.dataframe(df, use_container_width=True, hide_index=True)
-        except Exception as e:
-            st.error(f"SQL 실행 중 오류가 발생했습니다: {e}")
